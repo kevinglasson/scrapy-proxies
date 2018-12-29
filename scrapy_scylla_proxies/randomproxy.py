@@ -39,6 +39,8 @@ SCYLLA_STATS_PATH = '/api/v1/stats'
 class RandomProxy(object):
     """
     Settings:
+    * ``SSP_ENABLED`` - Whether this middleware is enabled
+
     * ``SSP_SCYLLA_URI`` - The location of the Scylla API (Default: 'http://localhost:8899')
 
     * ``SSP_PROXY_TIMEOUT`` - How often the proxy list is refreshed (Default: 60s)
@@ -60,7 +62,7 @@ class RandomProxy(object):
         self.refresh_thread = None
 
         # Refresh the proxies list (or populate if it's the first time)
-        self.threading_proxies()
+        self._threading_proxies()
 
         # Exception if the list is empty for some reason
         if self.proxies is None:
@@ -69,7 +71,7 @@ class RandomProxy(object):
     @classmethod
     def from_crawler(cls, crawler):
         """Called by scrapy to create an instance of this middleware
-        
+
         :param crawler: crawler
         :type crawler: crawler
         :raises NotConfigured: Issue with middleware settings
@@ -80,10 +82,14 @@ class RandomProxy(object):
         # Get all the settings
         s = crawler.settings
 
+        # Check if eabled
+        if not s.getbool('SSP_ENABLED', default=False):
+            raise NotConfigured
+
         # Fetch my settings
-        scylla = s.get('SSP_SCYLLA_URI', 'http://localhost:8899')
-        timeout = s.get('SSP_PROXY_TIMEOUT', 60)
-        https = s.get('SSP_HTTPS', True)
+        scylla = s.get('SSP_SCYLLA_URI', default='http://localhost:8899')
+        timeout = s.getint('SSP_PROXY_TIMEOUT', default=60)
+        https = s.getbool('SSP_HTTPS', default=True)
 
         if not RandomProxy.scylla_alive_and_populated(scylla):
             raise NotConfigured(
@@ -127,17 +133,25 @@ class RandomProxy(object):
             log.exception('Response from Scylla malformed.')
             raise e
 
-    def threading_proxies(self):
+    def _threading_proxies(self):
+        """Starts a thread that will refresh the proxy list every 'timeout' seconds.
+
+        """
+
         log.info('Starting proxy refresh threading.')
         # Refresh the proxy list
-        self.get_proxies()
+        self._get_proxies()
         # Call this function again after the time elapses
         self.refresh_thread = threading.Timer(
-            self.timeout, self.get_proxies)
+            self.timeout, self._get_proxies)
         # Start the thread
         self.refresh_thread.start()
 
-    def get_proxies(self):
+    def _get_proxies(self):
+        """Get proxy address information from Scylla.
+
+        """
+
         params = {}
         if self.https:
             params = {'https': 'true'}

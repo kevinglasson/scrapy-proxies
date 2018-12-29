@@ -1,0 +1,9 @@
+README.md
+setup.py
+scrapy_scylla_proxies/__init__.py
+scrapy_scylla_proxies/randomproxy.py
+scrapy_scylla_proxies.egg-info/PKG-INFO
+scrapy_scylla_proxies.egg-info/SOURCES.txt
+scrapy_scylla_proxies.egg-info/dependency_links.txt
+scrapy_scylla_proxies.egg-info/requires.txt
+scrapy_scylla_proxies.egg-info/top_level.txt
