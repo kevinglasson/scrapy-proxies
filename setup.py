@@ -2,10 +2,17 @@
 import sys
 from distutils.core import setup
 
+from os import path
+this_directory = path.abspath(path.dirname(__file__))
+with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
+
 setup(
     name='scrapy-scylla-proxies',
-    version='0.1.4.0',
-    description='Scrapy-Scylla Proxies: random proxy middleware for Scrapy',
+    version='0.2.0.3',
+    description='scrapy-scylla-proxies: Random proxy middleware for Scrapy that fetches valid proxies from Scylla.',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     author='Kevin Glasson',
     author_email='kevinglasson+scrapyscylla@gmail.com',
     url='https://github.com/kevinglasson/scrapy-scylla-proxies.git',
