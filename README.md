@@ -1,26 +1,27 @@
-Random proxy middleware for Scrapy (http://scrapy.org/)
-=======================================================
+# Random proxy middleware for Scrapy (http://scrapy.org/)
+
+### Utilising Scylla to fetch operational proxies (https://github.com/imWildCat/scylla)
 
 Processes Scrapy requests using a random proxy from list to avoid IP ban and
-improve crawling speed.
+improve crawling speed, this plugs in to the Scylla project which provides a local database of proxies.
 
-Get your proxy list from sites like http://www.hidemyass.com/ (copy-paste into text file
-and reformat to http://host:port format)
+## Install
 
-Install
---------
+The Scylla project will need to be set up separately!! the quickest way is to use the docker, this will download it and run it (provided you have docker of course)
+
+    docker run -d -p 8899:8899 -p 8081:8081 --name scylla wildcat/scylla:latest
 
 The quick way:
 
-    pip install scrapy_proxies
+    pip install scrapy-scylla-proxies
 
 Or checkout the source and run
 
     python setup.py install
 
+## settings.py
 
-settings.py
------------
+This is stuff you are going to need to integrate this middleware with scrapy.
 
     # Retry many times since proxies often fail
     RETRY_TIMES = 10
@@ -28,40 +29,17 @@ settings.py
     RETRY_HTTP_CODES = [500, 503, 504, 400, 403, 404, 408]
 
     DOWNLOADER_MIDDLEWARES = {
-        'scrapy.downloadermiddlewares.retry.RetryMiddleware': 90,
-        'scrapy_proxies.RandomProxy': 100,
-        'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 110,
+        # For retries
+        'scrapy.downloadermiddlewares.retry.RetryMiddleware': 290,
+        # For random scylla proxies
+        'scrapy_scylla_proxies.RandomProxy': 300,
+        # For http proxy ip rotation
+        'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 310,
     }
 
-    # Proxy list containing entries like
-    # http://host1:port
-    # http://username:password@host2:port
-    # http://host3:port
-    # ...
-    PROXY_LIST = '/path/to/proxy/list.txt'
-    
-    # Proxy mode
-    # 0 = Every requests have different proxy
-    # 1 = Take only one proxy from the list and assign it to every requests
-    # 2 = Put a custom proxy to use in the settings
-    PROXY_MODE = 0
-    
-    # If proxy mode is 2 uncomment this sentence :
-    #CUSTOM_PROXY = "http://host1:port"
-
-
-For older versions of Scrapy (before 1.0.0) you have to use
-scrapy.contrib.downloadermiddleware.retry.RetryMiddleware and
-scrapy.contrib.downloadermiddleware.httpproxy.HttpProxyMiddleware
-middlewares instead.
-
-
-Your spider
------------
-
-In each callback ensure that proxy /really/ returned your target page by
-checking for site logo or some other significant element.
-If not - retry request with dont_filter=True
-
-    if not hxs.select('//get/site/logo'):
-        yield Request(url=response.url, dont_filter=True)
+    # Location of the scylla server
+    SCYLLA_URI = 'http://localhost:8899'
+    # Proxy timeout in seconds
+    PROXY_TIMEOUT = 60
+    # Get only https proxies
+    PROXY_HTTPS = True
