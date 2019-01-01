@@ -4,7 +4,7 @@
 
 <hr>
 
-NOTE: I am not a real programmer, help always appreciated! But it works!
+NOTE: I am not a real programmer, help always appreciated! But it works! ... for now.
 
 Processes Scrapy requests using a random proxy from list to avoid IP ban and
 improve crawling speed, this plugs in to the Scylla project which provides a local database of proxies.

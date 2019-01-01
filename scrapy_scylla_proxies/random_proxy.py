@@ -23,20 +23,20 @@ import base64
 import logging
 import random
 import re
-import urllib.parse
 import threading
+import urllib.parse
+
+import requests
 from scrapy import signals
 from scrapy.exceptions import CloseSpider, NotConfigured
 
-import requests
-
-log = logging.getLogger('scrapy-scylla-proxies')
+logger = logging.getLogger('scrapy-scylla-proxies.RandomProxy')
 
 SCYLLA_API_PATH = '/api/v1/proxies'
 SCYLLA_STATS_PATH = '/api/v1/stats'
 
 
-class RandomProxy(object):
+class RandomProxyMiddleware(object):
     """
     Settings:
     * ``SSP_ENABLED`` - Whether this middleware is enabled
@@ -91,7 +91,7 @@ class RandomProxy(object):
         timeout = s.getint('SSP_PROXY_TIMEOUT', default=60)
         https = s.getbool('SSP_HTTPS', default=True)
 
-        if not RandomProxy.scylla_alive_and_populated(scylla):
+        if not RandomProxyMiddleware.scylla_alive_and_populated(scylla):
             raise NotConfigured(
                 'Scylla is reachable but the proxy list is empty.')
 
@@ -127,10 +127,10 @@ class RandomProxy(object):
 
         # Catch and re-raise the exception
         except requests.exceptions.RequestException as e:
-            log.exception('Could not reach Scylla.')
+            logger.exception('Could not reach Scylla.')
             raise e
         except KeyError as e:
-            log.exception('Response from Scylla malformed.')
+            logger.exception('Response from Scylla malformed.')
             raise e
 
     def _threading_proxies(self):
@@ -138,7 +138,7 @@ class RandomProxy(object):
 
         """
 
-        log.info('Starting proxy refresh threading.')
+        logger.info('Starting proxy refresh threading.')
         # Refresh the proxy list
         self._get_proxies()
         # Call this function again after the time elapses
@@ -165,7 +165,7 @@ class RandomProxy(object):
             self.proxies = json_resp['proxies']
         # Catch and re-raise the exception
         except requests.exceptions.RequestException as e:
-            log.exception('Could not fetch proxies from Scylla.')
+            logger.exception('Could not fetch proxies from Scylla.')
             raise e
 
     def process_request(self, request, spider):
@@ -191,7 +191,7 @@ class RandomProxy(object):
 
         # Set the proxy
         request.meta['proxy'] = proxy_url
-        log.info('Using proxy: %s' % proxy_url)
+        logger.info('Using proxy: %s' % proxy_url)
 
     def process_exception(self, request, exception, spider):
         if 'proxy' not in request.meta:
@@ -200,7 +200,7 @@ class RandomProxy(object):
         # What proxy had the exception
         proxy = request.meta['proxy']
 
-        log.error('Exception using proxy: %s' % exception)
+        logger.error('Exception using proxy: %s' % exception)
         # Set exception to True
         request.meta["exception"] = True
 
@@ -215,4 +215,4 @@ class RandomProxy(object):
 
         # Close the proxy refresh thread
         self.refresh_thread.cancel()
-        log.info('Closing')
+        logger.info('Closing')
