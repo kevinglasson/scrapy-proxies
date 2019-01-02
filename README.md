@@ -42,11 +42,12 @@ SSP_HTTPS - Whether to only use HTTPS proxies, You will need this set to True if
     # Retry on most error codes since proxies fail for different reasons
     RETRY_HTTP_CODES = [500, 503, 504, 400, 403, 404, 408]
 
+
     DOWNLOADER_MIDDLEWARES = {
         # For retries
         'scrapy.downloadermiddlewares.retry.RetryMiddleware': 290,
         # For random scylla proxies
-        'scrapy_scylla_proxies.RandomProxy': 300,
+        'scrapy_scylla_proxies.random_proxy.RandomProxyMiddleware': 300,
         # For http proxy ip rotation
         'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 310,
     }
