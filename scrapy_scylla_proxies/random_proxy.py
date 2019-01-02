@@ -30,10 +30,10 @@ import requests
 from scrapy import signals
 from scrapy.exceptions import CloseSpider, NotConfigured
 
-logger = logging.getLogger('scrapy-scylla-proxies.RandomProxy')
+from scrapy_scylla_proxies.scylla import Scylla
+from scrapy_scylla_proxies.exceptions import SSPNoProxiesError
 
-SCYLLA_API_PATH = '/api/v1/proxies'
-SCYLLA_STATS_PATH = '/api/v1/stats'
+logger = logging.getLogger('scrapy-scylla-proxies.random_proxy')
 
 
 class RandomProxyMiddleware(object):
@@ -49,7 +49,7 @@ class RandomProxyMiddleware(object):
     """
 
     def __init__(self, scylla, timeout, https, crawler):
-        # Location of the scylla JSON api endpoint
+        # Scylla object for interaction with the proxy lists
         self.scylla = scylla
         # How often to get a new list of proxies from scylla
         self.timeout = timeout
@@ -61,12 +61,16 @@ class RandomProxyMiddleware(object):
         # Keep a handle on the proxy refresh thread
         self.refresh_thread = None
 
+        # Start the middleware i.e. perform the setup stuff.
+        self._start()
+
+    def _start(self):
         # Refresh the proxies list (or populate if it's the first time)
         self._threading_proxies()
 
-        # Exception if the list is empty for some reason
+        # Exception if the list is empty for some reason. This is probably unreachable....
         if self.proxies is None:
-            raise ValueError('Proxies list is empty.')
+            raise SSPNoProxiesError('Proxies list is empty.')
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -84,16 +88,16 @@ class RandomProxyMiddleware(object):
 
         # Check if eabled
         if not s.getbool('SSP_ENABLED', default=False):
-            raise NotConfigured
+            raise NotConfigured(
+                'scrapy_scylla_proxies middleware is not enabled')
 
         # Fetch my settings
-        scylla = s.get('SSP_SCYLLA_URI', default='http://localhost:8899')
+        scylla_uri = s.get('SSP_SCYLLA_URI', default='http://localhost:8899')
         timeout = s.getint('SSP_PROXY_TIMEOUT', default=60)
         https = s.getbool('SSP_HTTPS', default=True)
 
-        if not RandomProxyMiddleware.scylla_alive_and_populated(scylla):
-            raise NotConfigured(
-                'Scylla is reachable but the proxy list is empty.')
+        # Create a a Scylla object
+        scylla = Scylla(scylla_uri)
 
         # Create an instance of this middleware
         mw = cls(scylla, timeout, https, crawler)
@@ -104,42 +108,13 @@ class RandomProxyMiddleware(object):
 
         return mw
 
-    @staticmethod
-    def scylla_alive_and_populated(scylla):
-        """Check if the Scylla API is reachable.
-
-        :param scylla: URL of the Scylla API
-        :type scylla: str
-        :return: Whether Scylla is reachable
-        :rtype: boolean
-        """
-
-        try:
-            url = urllib.parse.urljoin(scylla, SCYLLA_STATS_PATH)
-            # Get the proxy list from scylla
-            json_resp = requests.get(
-                url).json()
-            # If the valid_count > 0 then we are good to go!
-            if int(json_resp['valid_count']) > 0:
-                return True
-            else:
-                return False
-
-        # Catch and re-raise the exception
-        except requests.exceptions.RequestException as e:
-            logger.exception('Could not reach Scylla.')
-            raise e
-        except KeyError as e:
-            logger.exception('Response from Scylla malformed.')
-            raise e
-
     def _threading_proxies(self):
         """Starts a thread that will refresh the proxy list every 'timeout' seconds.
 
         """
 
         logger.info('Starting proxy refresh threading.')
-        # Refresh the proxy list
+        # Get the first list of proxies
         self._get_proxies()
         # Call this function again after the time elapses
         self.refresh_thread = threading.Timer(
@@ -148,25 +123,11 @@ class RandomProxyMiddleware(object):
         self.refresh_thread.start()
 
     def _get_proxies(self):
-        """Get proxy address information from Scylla.
+        """Requesting new proxies from Scylla."""
 
-        """
-
-        params = {}
-        if self.https:
-            params = {'https': 'true'}
-
-        try:
-            # Create the url
-            url = urllib.parse.urljoin(self.scylla, SCYLLA_API_PATH)
-            # Get the proxy list from scylla
-            json_resp = requests.get(
-                url, params=params).json()
-            self.proxies = json_resp['proxies']
-        # Catch and re-raise the exception
-        except requests.exceptions.RequestException as e:
-            logger.exception('Could not fetch proxies from Scylla.')
-            raise e
+        logger.debug('Requesting new proxies from Scylla.')
+        # Refresh the proxy list
+        self.proxies = self.scylla.get_proxies()
 
     def process_request(self, request, spider):
         # If a proxy is already present
@@ -191,7 +152,7 @@ class RandomProxyMiddleware(object):
 
         # Set the proxy
         request.meta['proxy'] = proxy_url
-        logger.info('Using proxy: %s' % proxy_url)
+        logger.debug('Using proxy: %s' % proxy_url)
 
     def process_exception(self, request, exception, spider):
         if 'proxy' not in request.meta:
@@ -200,7 +161,7 @@ class RandomProxyMiddleware(object):
         # What proxy had the exception
         proxy = request.meta['proxy']
 
-        logger.error('Exception using proxy: %s' % exception)
+        logger.error('Exception using proxy %s: %s' % (proxy, request))
         # Set exception to True
         request.meta["exception"] = True
 

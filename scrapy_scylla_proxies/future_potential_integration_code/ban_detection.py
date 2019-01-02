@@ -23,10 +23,9 @@
 
 import logging
 
-from scrapy.exceptions import IgnoreRequest
 from scrapy.utils.misc import load_object
 
-logger = logging.getLogger('scrapy-scylla-proxies.BanDetection')
+logger = logging.getLogger('scrapy-scylla-proxies.ban_detection')
 
 
 class BanDetectionMiddleware(object):
@@ -89,7 +88,7 @@ class BanDetectionMiddleware(object):
     def _load_policy(cls, crawler):
         policy_path = crawler.settings.get(
             'SSP_BAN_POLICY',
-            'rotating_proxies.policy.BanDetectionPolicy'
+            'scrapy_scylla_proxies.policy.BanDetectionPolicy'
         )
         policy_cls = load_object(policy_path)
         if hasattr(policy_cls, 'from_crawler'):
@@ -117,20 +116,3 @@ class BanDetectionMiddleware(object):
                                   exception.__class__.__name__)
             self.stats.inc_value("bans/error/%s" % ex_class)
         request.meta['_ban'] = ban
-
-
-class BanDetectionPolicy(object):
-    """ Default ban detection rules.
-    """
-    NOT_BAN_STATUSES = {200, 301, 302}
-    NOT_BAN_EXCEPTIONS = (IgnoreRequest,)
-
-    def response_is_ban(self, request, response):
-        if response.status not in self.NOT_BAN_STATUSES:
-            return True
-        if response.status == 200 and not len(response.body):
-            return True
-        return False
-
-    def exception_is_ban(self, request, exception):
-        return not isinstance(exception, self.NOT_BAN_EXCEPTIONS)

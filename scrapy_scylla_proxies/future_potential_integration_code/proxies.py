@@ -28,7 +28,7 @@ import time
 
 import attr
 
-logger = logging.getLogger('scrapy-scylla-proxies.Proxies')
+logger = logging.getLogger('scrapy-scylla-proxies.proxies')
 
 
 class Proxies(object):

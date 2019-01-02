@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: scrapy-scylla-proxies
-Version: 0.2.1.0
+Version: 0.3.0.1
 Summary: scrapy-scylla-proxies: Random proxy middleware for Scrapy that fetches valid proxies from Scylla.
 Home-page: https://github.com/kevinglasson/scrapy-scylla-proxies.git
 Author: Kevin Glasson
@@ -12,7 +12,7 @@ Description: # Random proxy middleware for [Scrapy](http://scrapy.org/)
         
         <hr>
         
-        NOTE: I am not a real programmer, help always appreciated! But it works!
+        NOTE: I am not a real programmer, help always appreciated! But it works! ... for now.
         
         Processes Scrapy requests using a random proxy from list to avoid IP ban and
         improve crawling speed, this plugs in to the Scylla project which provides a local database of proxies.
