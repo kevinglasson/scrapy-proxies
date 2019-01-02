@@ -62,9 +62,7 @@ class Scylla(object):
                 'Expected \'%s\' in response, got %s.' % (VALID_COUNT, json_resp))
 
     def get_proxies(self, https=True):
-        """Get proxy address information from Scylla.
-
-        """
+        """Get proxy address information from Scylla."""
 
         logger.debug('Fetching proxies.')
         params = {LIMIT: MAX_PROXIES_PER_PAGE}

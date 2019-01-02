@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: scrapy-scylla-proxies
-Version: 0.3.0.1
+Version: 0.4.0.0
 Summary: scrapy-scylla-proxies: Random proxy middleware for Scrapy that fetches valid proxies from Scylla.
 Home-page: https://github.com/kevinglasson/scrapy-scylla-proxies.git
 Author: Kevin Glasson

@@ -65,6 +65,8 @@ class RandomProxyMiddleware(object):
         self._start()
 
     def _start(self):
+        """Start the middleware."""
+
         # Refresh the proxies list (or populate if it's the first time)
         self._threading_proxies()
 
@@ -74,7 +76,7 @@ class RandomProxyMiddleware(object):
 
     @classmethod
     def from_crawler(cls, crawler):
-        """Called by scrapy to create an instance of this middleware
+        """Called by Scrapy to create an instance of this middleware.
 
         :param crawler: crawler
         :type crawler: crawler
@@ -130,6 +132,15 @@ class RandomProxyMiddleware(object):
         self.proxies = self.scylla.get_proxies()
 
     def process_request(self, request, spider):
+        """Called by Scrapy for each request.
+
+        :param request: Current request
+        :type request: Request
+        :param spider: Current spider
+        :type spider: Spider
+        :return: Nothing
+        """
+
         # If a proxy is already present
         if 'proxy' in request.meta:
             # And an exception hasn't occured

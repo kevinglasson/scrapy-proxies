@@ -1,10 +1,7 @@
 README.md
 setup.py
 scrapy_scylla_proxies/__init__.py
-scrapy_scylla_proxies/ban_detection.py
 scrapy_scylla_proxies/exceptions.py
-scrapy_scylla_proxies/policy.py
-scrapy_scylla_proxies/proxies.py
 scrapy_scylla_proxies/random_proxy.py
 scrapy_scylla_proxies/scylla.py
 scrapy_scylla_proxies.egg-info/PKG-INFO
