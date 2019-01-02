@@ -55,11 +55,12 @@ class Scylla(object):
                     'No proxies in the Scylla DB, might need to wait a minute.')
 
         # Catch and raise exceptions
-        except requests.exceptions.RequestException:
-            raise SSPScyllaNotReachableError('Could not reach the Scylla API.')
-        except KeyError:
+        except requests.exceptions.RequestException as e:
+            raise SSPScyllaNotReachableError(
+                'Could not reach the Scylla API.') from e
+        except KeyError as e:
             raise SSPScyllaResponseError(
-                'Expected \'%s\' in response, got %s.' % (VALID_COUNT, json_resp))
+                'Expected \'%s\' in response, got %s.' % (VALID_COUNT, json_resp)) from e
 
     def get_proxies(self, https=True):
         """Get proxy address information from Scylla."""
@@ -77,7 +78,7 @@ class Scylla(object):
             return json_resp[PROXIES]
         except requests.exceptions.RequestException as e:
             raise SSPScyllaNotReachableError(
-                'Could not reach the Scylla API. %s' % e)
+                'Could not reach the Scylla API.') from e
         except ValueError as e:
             raise SSPScyllaResponseError(
-                'Response from Scylla when trying to fetch proxies. %s' % e)
+                'Response from Scylla when trying to fetch proxies.') from e

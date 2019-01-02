@@ -78,11 +78,11 @@ class RandomProxyMiddleware(object):
     def from_crawler(cls, crawler):
         """Called by Scrapy to create an instance of this middleware.
 
-        :param crawler: crawler
-        :type crawler: crawler
+        :param crawler: Current crawler
+        :type crawler: Crawler object
         :raises NotConfigured: Issue with middleware settings
         :return: Instance of the middleware
-        :rtype: RandomProxy
+        :rtype: RandomProxyMiddelware
         """
 
         # Get all the settings
@@ -134,10 +134,12 @@ class RandomProxyMiddleware(object):
     def process_request(self, request, spider):
         """Called by Scrapy for each request.
 
+        This is the core of the middleware and allows changing of the current request. This is where a random proxy is added to the request object.
+
         :param request: Current request
-        :type request: Request
+        :type request: Request object
         :param spider: Current spider
-        :type spider: Spider
+        :type spider: Spider object
         :return: Nothing
         """
 
@@ -166,13 +168,26 @@ class RandomProxyMiddleware(object):
         logger.debug('Using proxy: %s' % proxy_url)
 
     def process_exception(self, request, exception, spider):
+        """Process exception while attempting to scrape a URL.
+
+        Currently this method doesn't do anything much, in the future it could be used to alter the proxies list or something based on exceptions. However HTTP 'ERROR' don't pass through here, only real exceptions like a requests timeout.
+
+        :param request: Current request
+        :type request: Requests object
+        :param exception: Current exception
+        :type exception: Exception object
+        :param spider: Current spider
+        :type spider: Spider object
+        """
+
         if 'proxy' not in request.meta:
             return
 
         # What proxy had the exception
         proxy = request.meta['proxy']
 
-        logger.error('Exception using proxy %s: %s' % (proxy, request))
+        logger.error('Exception using proxy %s. %s. %s' %
+                     (proxy, exception, request))
         # Set exception to True
         request.meta["exception"] = True
 

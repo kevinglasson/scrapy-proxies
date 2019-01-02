@@ -27,7 +27,7 @@ Or checkout the source and run
 
 ## What to put in Scrapy's 'settings.py'
 
-This is stuff you are going to need to integrate this middleware with scrapy.
+This is stuff you are going to need to integrate this middleware with Scrapy.
 
 SSP_SCYLLA_URI - The location of the Scylla API (Default: 'http://localhost:8899')
 

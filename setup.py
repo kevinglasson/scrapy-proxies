@@ -17,7 +17,7 @@ setup(
     author_email='kevinglasson+scrapyscylla@gmail.com',
     url='https://github.com/kevinglasson/scrapy-scylla-proxies.git',
     packages=['scrapy_scylla_proxies'],
-    install_requires=['requests', 'attr'],
+    install_requires=['requests', 'attrs'],
     python_requires='>=3',
     classifiers=[
         'Development Status :: 3 - Alpha',
