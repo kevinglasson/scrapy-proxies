@@ -68,7 +68,7 @@ class Scylla(object):
         logger.debug('Fetching proxies.')
         params = {LIMIT: MAX_PROXIES_PER_PAGE}
         if https:
-            params = {HTTPS: 'true'}
+            params[HTTPS] = 'true'
 
         try:
             # Get the proxy list from scylla

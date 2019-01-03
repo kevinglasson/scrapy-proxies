@@ -31,11 +31,11 @@ This is stuff you are going to need to integrate this middleware with Scrapy.
 
 **SSP_ENABLED** - This **MUST** be set to True.
 
-**SSP_SCYLLA_URI** - The location of the Scylla API (Default: 'http://localhost:8899')
+**SSP_SCYLLA_URI** - The location of the Scylla API (Default: 'http://localhost:8899').
 
-**SSP_PROXY_TIMEOUT** - How often the proxy list is refreshed (Default: 60s)
+**SSP_PROXY_TIMEOUT** - How often the proxy list is refreshed (Default: 60s).
 
-**SSP_HTTPS** - Whether to only use HTTPS proxies, You will need this set to True if you are scraping an HTTPS site (Default: True)
+**SSP_HTTPS** - Whether to only use HTTPS proxies, You will need this set to True if you are scraping an HTTPS site (Default: True).
 
 ### Example 'settings.py'
 
