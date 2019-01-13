@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: scrapy-scylla-proxies
-Version: 0.4.1.0
+Version: 0.4.2.0
 Summary: scrapy-scylla-proxies: Random proxy middleware for Scrapy that fetches valid proxies from Scylla.
 Home-page: https://github.com/kevinglasson/scrapy-scylla-proxies.git
 Author: Kevin Glasson
@@ -39,11 +39,11 @@ Description: # Random proxy middleware for [Scrapy](http://scrapy.org/)
         
         **SSP_ENABLED** - This **MUST** be set to True.
         
-        **SSP_SCYLLA_URI** - The location of the Scylla API (Default: 'http://localhost:8899')
+        **SSP_SCYLLA_URI** - The location of the Scylla API (Default: 'http://localhost:8899').
         
-        **SSP_PROXY_TIMEOUT** - How often the proxy list is refreshed (Default: 60s)
+        **SSP_PROXY_TIMEOUT** - How often the proxy list is refreshed (Default: 60s).
         
-        **SSP_HTTPS** - Whether to only use HTTPS proxies, You will need this set to True if you are scraping an HTTPS site (Default: True)
+        **SSP_HTTPS** - Whether to only use HTTPS proxies, You will need this set to True if you are scraping an HTTPS site (Default: True).
         
         ### Example 'settings.py'
         

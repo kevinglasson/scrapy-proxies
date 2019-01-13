@@ -71,8 +71,9 @@ class RandomProxyMiddleware(object):
         self._threading_proxies()
 
         # Exception if the list is empty for some reason. This is probably unreachable....
-        if self.proxies is None:
-            raise SSPNoProxiesError('Proxies list is empty.')
+        if not self.proxies:
+            raise SSPNoProxiesError(
+                'Proxies list is empty, Wait a fee minutes for Scylla to populate.')
 
     @classmethod
     def from_crawler(cls, crawler):
@@ -155,7 +156,11 @@ class RandomProxyMiddleware(object):
         request.meta["exception"] = False
 
         # Randomly choose a proxy
-        proxy = random.choice(self.proxies)
+        try:
+            proxy = random.choice(self.proxies)
+        except IndexError as e:
+            raise SSPNoProxiesError(
+                'Proxies list is empty, Wait a fee minutes for Scylla to populate.') from e
 
         # Format it!
         if self.https:

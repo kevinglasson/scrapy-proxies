@@ -9,7 +9,7 @@ with open(path.join(this_directory, 'README.md'), encoding='utf-8') as f:
 
 setup(
     name='scrapy-scylla-proxies',
-    version='0.4.2.0',
+    version='0.4.2.1',
     description='scrapy-scylla-proxies: Random proxy middleware for Scrapy that fetches valid proxies from Scylla.',
     long_description=long_description,
     long_description_content_type='text/markdown',
