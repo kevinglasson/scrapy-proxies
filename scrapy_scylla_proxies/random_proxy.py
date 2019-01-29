@@ -190,7 +190,10 @@ class RandomProxyMiddleware(object):
             request.meta['proxy'] = proxy_url
             logger.debug('Using proxy (scrapy request): %s' % proxy_url)
         else:
-            request.meta['splash']['args']['proxy'] = self._get_proxy_formatted()
+            proxy_url = self._get_proxy_formatted()
+
+            request.meta['splash']['args']['proxy'] = proxy_url
+
             logger.debug('Using proxy (splash request): %s' % proxy_url)
 
     def process_exception(self, request, exception, spider):

@@ -57,7 +57,7 @@ class Scylla(object):
         # Catch and raise exceptions
         except requests.exceptions.RequestException as e:
             raise SSPScyllaNotReachableError(
-                'Could not reach the Scylla API. Try running this command to start Scylla. docker run -d -p 8899:8899 -p 8081:8081 --name scylla wildcat/scylla:latest') from e
+                'Could not reach the Scylla API. Try running this command to start Scylla. \n\ndocker run -d -p 8899:8899 -p 8081:8081 --name scylla wildcat/scylla:latest\n\n') from e
         except KeyError as e:
             raise SSPScyllaResponseError(
                 'Expected \'%s\' in response, got %s.' % (VALID_COUNT, json_resp)) from e
