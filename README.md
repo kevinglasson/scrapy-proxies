@@ -37,6 +37,8 @@ This is stuff you are going to need to integrate this middleware with Scrapy.
 
 **SSP_HTTPS** - Whether to only use HTTPS proxies, You will need this set to True if you are scraping an HTTPS site (Default: True).
 
+**SSP_SPLASH_REQUEST_ENABLED** - Whether this middleware will need to set the proxy for a 'scrapy.Request' or a 'SplashRequest' (Default: False)
+
 ### Example 'settings.py'
 
 This is a sample taken directly from a working scraper of mine, I used it to scrape approximately 15000 items from a website without any 'bans'.
@@ -52,7 +54,7 @@ This is a sample taken directly from a working scraper of mine, I used it to scr
         # For random scylla proxies
         'scrapy_scylla_proxies.random_proxy.RandomProxyMiddleware': 300,
         # For http proxy ip rotation
-        'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 310,
+        'scrapy.downloadermiddlewares.httpproxy.HttpProxyMiddleware': 750,
     }
 
     DOWNLOAD_TIMEOUT = 180

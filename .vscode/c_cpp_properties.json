@@ -1,0 +1,19 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "/Users/kevinglasson/Library/Arduino15/packages/adafruit/hardware/samd/1.2.8/**"
+            ],
+            "forcedInclude": [
+                "/Users/kevinglasson/Library/Arduino15/packages/adafruit/hardware/samd/1.2.8/cores/arduino/Arduino.h"
+            ],
+            "macFrameworkPath": [
+                "/System/Library/Frameworks",
+                "/Library/Frameworks"
+            ],
+            "intelliSenseMode": "clang-x64"
+        }
+    ],
+    "version": 4
+}

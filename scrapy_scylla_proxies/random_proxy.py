@@ -46,15 +46,19 @@ class RandomProxyMiddleware(object):
     * ``SSP_PROXY_TIMEOUT`` - How often the proxy list is refreshed (Default: 60s)
 
     * ``SSP_HTTPS`` - Whether to only use HTTPS proxies, You will need this set to True if you are scraping an HTTPS site (Default: True)
+
+    * ``SSP_SPLASH_REQUEST_ENABLED`` - Whether this middleware will need to set the proxy for a 'scrapy.Request' or a 'SplashRequest' (Default: False)
     """
 
-    def __init__(self, scylla, timeout, https, crawler):
+    def __init__(self, scylla, timeout, https, crawler, splash_request_enabled):
         # Scylla object for interaction with the proxy lists
         self.scylla = scylla
         # How often to get a new list of proxies from scylla
         self.timeout = timeout
         # HTTPS only
         self.https = https
+        # Is splash enabled?
+        self.splash_request_enabled = splash_request_enabled
 
         # The current list of proxies to choose from
         self.proxies = None
@@ -98,12 +102,14 @@ class RandomProxyMiddleware(object):
         scylla_uri = s.get('SSP_SCYLLA_URI', default='http://localhost:8899')
         timeout = s.getint('SSP_PROXY_TIMEOUT', default=60)
         https = s.getbool('SSP_HTTPS', default=True)
+        splash_request_enabled = s.getbool(
+            'SSP_SPLASH_REQUEST_ENABLED', default=False)
 
         # Create a a Scylla object
         scylla = Scylla(scylla_uri)
 
         # Create an instance of this middleware
-        mw = cls(scylla, timeout, https, crawler)
+        mw = cls(scylla, timeout, https, crawler, splash_request_enabled)
 
         # Connect to signals
         crawler.signals.connect(
@@ -113,7 +119,6 @@ class RandomProxyMiddleware(object):
 
     def _threading_proxies(self):
         """Starts a thread that will refresh the proxy list every 'timeout' seconds.
-
         """
 
         logger.info('Starting proxy refresh threading.')
@@ -132,6 +137,29 @@ class RandomProxyMiddleware(object):
         # Refresh the proxy list
         self.proxies = self.scylla.get_proxies()
 
+    def _get_proxy_formatted(self):
+        """Choose a random proxy and format with the correct protocol.
+
+        :raises SSPNoProxiesError: No proxies to choose from
+        :return: Formatted proxy url
+        :rtype: str
+        """
+
+        # Randomly choose a proxy
+        try:
+            proxy = random.choice(self.proxies)
+        except IndexError as e:
+            raise SSPNoProxiesError(
+                'Proxies list is empty, Wait a few minutes for Scylla to populate.') from e
+
+        # Format it!
+        if self.https:
+            proxy_url = 'https://{}:{}'.format(proxy['ip'], proxy['port'])
+        else:
+            proxy_url = 'http://{}:{}'.format(proxy['ip'], proxy['port'])
+
+        return proxy_url
+
     def process_request(self, request, spider):
         """Called by Scrapy for each request.
 
@@ -144,33 +172,26 @@ class RandomProxyMiddleware(object):
         :return: Nothing
         """
 
-        # If a proxy is already present
-        if 'proxy' in request.meta:
-            # And an exception hasn't occured
-            if 'exception' in request.meta:
-                if request.meta["exception"] is False:
-                    # Just return i.e. the middleware does nothing
-                    return
+        if not self.splash_request_enabled:
+            # If a proxy is already present
+            if 'proxy' in request.meta:
+                # And an exception hasn't occured
+                if 'exception' in request.meta:
+                    if request.meta["exception"] is False:
+                        # Just return i.e. the middleware does nothing
+                        return
 
-        # Set the exception to False
-        request.meta["exception"] = False
+            # Set the exception to False
+            request.meta["exception"] = False
 
-        # Randomly choose a proxy
-        try:
-            proxy = random.choice(self.proxies)
-        except IndexError as e:
-            raise SSPNoProxiesError(
-                'Proxies list is empty, Wait a fee minutes for Scylla to populate.') from e
+            proxy_url = self._get_proxy_formatted()
 
-        # Format it!
-        if self.https:
-            proxy_url = 'https://{}:{}'.format(proxy['ip'], proxy['port'])
+            # Set the proxy
+            request.meta['proxy'] = proxy_url
+            logger.debug('Using proxy (scrapy request): %s' % proxy_url)
         else:
-            proxy_url = 'http://{}:{}'.format(proxy['ip'], proxy['port'])
-
-        # Set the proxy
-        request.meta['proxy'] = proxy_url
-        logger.debug('Using proxy: %s' % proxy_url)
+            request.meta['splash']['args']['proxy'] = self._get_proxy_formatted()
+            logger.debug('Using proxy (splash request): %s' % proxy_url)
 
     def process_exception(self, request, exception, spider):
         """Process exception while attempting to scrape a URL.
@@ -185,16 +206,29 @@ class RandomProxyMiddleware(object):
         :type spider: Spider object
         """
 
-        if 'proxy' not in request.meta:
-            return
+        if not self.splash_request_enabled:
 
-        # What proxy had the exception
-        proxy = request.meta['proxy']
+            if 'proxy' not in request.meta:
+                return
 
-        logger.error('Exception using proxy %s. %s. %s' %
-                     (proxy, exception, request))
-        # Set exception to True
-        request.meta["exception"] = True
+            # What proxy had the exception
+            proxy = request.meta['proxy']
+
+            logger.error('Exception using proxy %s. %s. %s' %
+                         (proxy, exception, request))
+            # Set exception to True
+            request.meta["exception"] = True
+        else:
+            if 'proxy' not in request.meta['splash']['args']['proxy']:
+                return
+
+            # What proxy had the exception
+            proxy = request.meta['splash']['args']['proxy']
+
+            logger.error('Exception using proxy %s. %s. %s' %
+                         (proxy, exception, request))
+            # Set exception to True
+            request.meta['splash']['args']["exception"] = True
 
     def spider_closed(self, spider, reason):
         """Called when the spider is closed
