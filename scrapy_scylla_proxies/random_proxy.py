@@ -222,7 +222,7 @@ class RandomProxyMiddleware(object):
             # Set exception to True
             request.meta["exception"] = True
         else:
-            if 'proxy' not in request.meta['splash']['args']['proxy']:
+            if 'proxy' not in request.meta['splash']['args']:
                 return
 
             # What proxy had the exception
