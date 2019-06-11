@@ -77,6 +77,6 @@ I also find that rotating your user agent in _combination_ with this middleware 
 
 ## Donate
 
-If you like this middleware or it was helpful to you, you can always send me a small donation, even just a token amount. It will encourage me to keep developing this middleware and improving it! :::fire:::
+If you like this middleware or it was helpful to you, you can always send me a small donation, even just a token amount. It will encourage me to keep developing this middleware and improving it! :fire:
 
 [Donate here!](https://www.paypal.me/kevinglasson)
